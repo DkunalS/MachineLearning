@@ -1,0 +1,223 @@
+Time Series Analysis in Machine Learning
+
+1. Introduction to Time Series Analysis
+
+
+Definition: A time series is a sequence of data points collected or recorded at specific time intervals.
+
+Characteristics:
+
+Trend: Long-term movement in data.
+
+Seasonality: Patterns that repeat at regular intervals.
+
+Cyclic: Fluctuations that occur at irregular intervals due to economic or other factors.
+
+Noise: Random variation in the data.
+
+
+
+
+2. Components of Time Series
+
+
+Trend Component: The long-term progression of the series. 
+
+Seasonal Component: The repeating short-term cycle in the series.
+
+Cyclical Component: The long-term oscillations that are not strictly periodic.
+
+Irregular Component: The residuals, which are random variations.
+
+
+3. Time Series Data Preparation
+
+
+Stationarity: A stationary time series has constant mean and variance over time. Use Augmented Dickey-Fuller (ADF) test to check for stationarity.
+
+Differencing: A common method to achieve stationarity by subtracting the previous observation from the current observation.
+
+Transformation: Techniques such as logarithm, square root, or Box-Cox transformation can stabilize variance.
+
+Decomposition: Separating the time series into trend, seasonal, and residual components.
+
+
+Code Example (Python)
+
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from statsmodels.tsa.stattools import adfuller
+
+# Load data
+data = pd.read_csv('time_series_data.csv', parse_dates=True, index_col='date')
+
+# Check for stationarity
+result = adfuller(data['value'])
+print('ADF Statistic:', result[])
+print('p-value:', result[1])
+
+# Differencing
+data['diff'] = data['value'].diff().dropna()
+
+# Plotting
+plt.figure(figsize=(12,6))
+plt.subplot(211)
+plt.plot(data['value'], label='Original')
+plt.legend(loc='best')
+plt.subplot(212)
+plt.plot(data['diff'], label='Differenced')
+plt.legend(loc='best')
+plt.show()
+
+
+4. Time Series Forecasting Methods
+
+4.1. Moving Average
+
+
+Definition: A technique that smooths data by creating a series of averages of different subsets of the full data set.
+
+Types:
+
+Simple Moving Average (SMA)
+
+Weighted Moving Average (WMA)
+
+Exponential Moving Average (EMA)
+
+
+
+
+Code Example (SMA)
+
+
+# Simple Moving Average
+data['SMA'] = data['value'].rolling(window=12).mean()
+
+# Plot
+plt.plot(data['value'], label='Original')
+plt.plot(data['SMA'], label='SMA', color='orange')
+plt.legend(loc='best')
+plt.show()
+
+
+4.2. Autoregressive Integrated Moving Average (ARIMA)
+
+
+Components:
+
+AR: Autoregressive part (using past values).
+
+I: Integrated part (differencing the series).
+
+MA: Moving Average part (using past forecast errors).
+
+
+
+Model Selection: Use ACF and PACF plots to determine the parameters (p, d, q).
+
+
+Code Example (ARIMA)
+
+from statsmodels.tsa.arima.model import ARIMA
+
+# Fit ARIMA model
+model = ARIMA(data['value'], order=(p, d, q))
+model_fit = model.fit()
+
+# Summary of the model
+print(model_fit.summary())
+
+# Forecasting
+forecast = model_fit.forecast(steps=10)
+plt.plot(data['value'], label='Original')
+plt.plot(np.arange(len(data), len(data) + 10), forecast, label='Forecast', color='red')
+plt.legend(loc='best')
+plt.show()
+
+
+4.3. Seasonal Decomposition of Time Series (STL)
+
+
+Definition: A method to decompose a time series into its seasonal, trend, and residual components.
+
+
+Code Example (STL)
+
+
+from statsmodels.tsa.seasonal import STL
+
+# Decomposition
+stl = STL(data['value'], seasonal=13)
+result = stl.fit()
+
+# Plot
+result.plot()
+plt.show()
+
+
+
+5. Machine Learning for Time Series Forecasting
+
+5.1. Feature Engineering
+
+
+Lag Features: Create features based on previous time steps.
+
+Rolling Statistics: Create features based on rolling means, rolling sums, etc.
+
+Date/Time Features: Extract features like hour, day, month, etc.
+
+
+Code Example (Feature Engineering)
+
+data['lag_1'] = data['value'].shift(1)
+data['rolling_mean_3'] = data['value'].rolling(window=3).mean()
+data.dropna(inplace=True)
+
+
+5.2. Models
+
+
+Linear Regression: Can be used for forecasting after feature engineering.
+
+Tree-based Models: Random Forest, XGBoost, which can capture non-linear relationships.
+
+Neural Networks: LSTM, GRU for sequential data processing.
+
+
+Code Example (Random Forest)
+
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error
+
+# Prepare data
+X = data[['lag_1', 'rolling_mean_3']]
+y = data['value']
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=.2, shuffle=False)
+
+# Fit model
+model = RandomForestRegressor()
+model.fit(X_train, y_train)
+
+# Predictions
+predictions = model.predict(X_test)
+
+# Evaluate
+print('MSE:', mean_squared_error(y_test, predictions))
+
+
+6. Evaluation Metrics for Time Series
+
+
+Mean Absolute Error (MAE): Average of absolute errors.
+
+Mean Squared Error (MSE): Average of squared errors.
+
+Root Mean Squared Error (RMSE): Square root of MSE.
+
+Mean Absolute Percentage Error (MAPE)
+
